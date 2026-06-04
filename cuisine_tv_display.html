@@ -1,0 +1,174 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0c0c;--bg2:#161616;--bg3:#202020;--bg4:#2a2a2a;
+  --txt:#f5f0e8;--txt2:#9a9490;--txt3:#5a5550;
+  --acc:#e8c547;--red:#e85447;--green:#4caf7d;--orange:#f0843a;
+  --brd:rgba(255,255,255,0.07);--brd2:rgba(255,255,255,0.13);
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+
+<div style="min-height:100vh;background:#0c0c0c;display:flex;flex-direction:column;font-family:'DM Sans',sans-serif">
+
+<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 28px;background:#161616;border-bottom:1px solid rgba(255,255,255,0.07)">
+  <div style="display:flex;align-items:center;gap:14px">
+    <i class="ti ti-chef-hat" style="font-size:28px;color:#e8c547" aria-hidden="true"></i>
+    <span style="font-size:24px;font-weight:700;color:#f5f0e8;letter-spacing:-0.3px">Cuisine</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:28px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div id="live-dot" style="width:10px;height:10px;border-radius:50%;background:#4caf7d"></div>
+      <span style="font-size:15px;color:#9a9490">En direct</span>
+    </div>
+    <div id="clock" style="font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:#e8c547"></div>
+    <div style="display:flex;gap:10px">
+      <div style="text-align:center;background:#202020;border-radius:10px;padding:8px 16px">
+        <div id="stat-new" style="font-size:28px;font-weight:700;font-family:'DM Mono',monospace;color:#e85447">0</div>
+        <div style="font-size:11px;color:#5a5550;text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Nouveaux</div>
+      </div>
+      <div style="text-align:center;background:#202020;border-radius:10px;padding:8px 16px">
+        <div id="stat-prep" style="font-size:28px;font-weight:700;font-family:'DM Mono',monospace;color:#f0843a">0</div>
+        <div style="font-size:11px;color:#5a5550;text-transform:uppercase;letter-spacing:.5px;margin-top:2px">En cuisine</div>
+      </div>
+      <div style="text-align:center;background:#202020;border-radius:10px;padding:8px 16px">
+        <div id="stat-done" style="font-size:28px;font-weight:700;font-family:'DM Mono',monospace;color:#4caf7d">0</div>
+        <div style="font-size:11px;color:#5a5550;text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Servis</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="grid" style="flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;padding:20px;align-content:start"></div>
+
+<div id="empty" style="display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:16px;color:#2a2a2a;padding:60px">
+  <i class="ti ti-chef-hat" style="font-size:80px" aria-hidden="true"></i>
+  <span style="font-size:24px;font-weight:600;color:#3a3a3a">Aucune commande en cours</span>
+</div>
+
+</div>
+
+<script>
+const KEY_ORDERS = 'rpos_orders_v2';
+
+function loadOrders() {
+  try { return JSON.parse(localStorage.getItem(KEY_ORDERS) || '[]'); } catch(e) { return []; }
+}
+function saveOrders(orders) {
+  try { localStorage.setItem(KEY_ORDERS, JSON.stringify(orders)); } catch(e) {}
+}
+
+function timeSince(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return s + 's';
+  return Math.floor(s / 60) + 'min';
+}
+
+function urgencyColor(ts, status) {
+  if (status === 'done') return '#4caf7d';
+  if (status === 'prep') return '#f0843a';
+  const min = (Date.now() - ts) / 60000;
+  if (min > 15) return '#e85447';
+  if (min > 8) return '#f0843a';
+  return '#e8c547';
+}
+
+function statusLabel(s) {
+  return {new:'Nouveau',prep:'En cuisine',done:'Servi'}[s] || s;
+}
+function statusColor(s) {
+  return {new:'#e85447',prep:'#f0843a',done:'#4caf7d'}[s];
+}
+
+function render() {
+  const orders = loadOrders().filter(o => o.status !== 'done');
+  const all = loadOrders();
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('empty');
+
+  document.getElementById('stat-new').textContent = orders.filter(o=>o.status==='new').length;
+  document.getElementById('stat-prep').textContent = orders.filter(o=>o.status==='prep').length;
+  document.getElementById('stat-done').textContent = all.filter(o=>o.status==='done').length;
+
+  if (!orders.length) {
+    grid.style.display = 'none';
+    empty.style.display = 'flex';
+    return;
+  }
+  grid.style.display = 'grid';
+  empty.style.display = 'none';
+
+  const sorted = [...orders].sort((a,b) => {
+    const sp = {new:0,prep:1}; return (sp[a.status]||2)-(sp[b.status]||2) || a.ts-b.ts;
+  });
+
+  grid.innerHTML = sorted.map(ord => {
+    const uc = urgencyColor(ord.ts, ord.status);
+    const sc = statusColor(ord.status);
+    const elapsed = timeSince(ord.ts);
+    const isUrgent = ord.status === 'new' && (Date.now()-ord.ts)/60000 > 8;
+    return `<div style="background:#161616;border:2px solid ${uc};border-radius:14px;overflow:hidden;${isUrgent?'animation:urgpulse 1.5s infinite':''}">
+      <div style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.07)">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:44px;font-weight:700;font-family:'DM Mono',monospace;color:${uc};line-height:1">T${ord.table}</span>
+          <div>
+            <div style="font-size:13px;color:#5a5550;text-transform:uppercase;letter-spacing:.5px">Table</div>
+            <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.06);border-radius:6px;padding:3px 9px;margin-top:4px">
+              <span style="width:7px;height:7px;border-radius:50%;background:${sc};display:inline-block"></span>
+              <span style="font-size:13px;font-weight:600;color:${sc}">${statusLabel(ord.status)}</span>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:28px;font-weight:700;font-family:'DM Mono',monospace;color:${isUrgent?'#e85447':'#9a9490'}">${elapsed}</div>
+          <div style="font-size:12px;color:#5a5550;margin-top:2px">${ord.time || ''}</div>
+        </div>
+      </div>
+      <div style="padding:14px 20px">
+        ${ord.items.map(it => `<div style="display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+          <span style="font-size:32px;font-weight:700;font-family:'DM Mono',monospace;color:#e8c547;min-width:40px;line-height:1">${it.qty}</span>
+          <span style="font-size:22px;font-weight:500;color:#f5f0e8;line-height:1.2">${it.name}</span>
+        </div>`).join('')}
+      </div>
+      <div style="display:flex;gap:0;border-top:1px solid rgba(255,255,255,0.07)">
+        ${ord.status==='new'?`<button onclick="updateStatus('${ord.id}','prep')" style="flex:1;padding:16px;background:none;border:none;border-right:1px solid rgba(255,255,255,0.07);color:#f0843a;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s" onmouseover="this.style.background='rgba(240,132,58,.1)'" onmouseout="this.style.background='none'">
+          <i class="ti ti-flame" style="font-size:20px" aria-hidden="true"></i>En cuisine
+        </button>`:''}
+        ${ord.status==='prep'?`<button onclick="updateStatus('${ord.id}','done')" style="flex:1;padding:16px;background:none;border:none;border-right:1px solid rgba(255,255,255,0.07);color:#4caf7d;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s" onmouseover="this.style.background='rgba(76,175,125,.1)'" onmouseout="this.style.background='none'">
+          <i class="ti ti-check" style="font-size:20px" aria-hidden="true"></i>Servi
+        </button>`:''}
+        <button onclick="updateStatus('${ord.id}','done')" style="padding:16px 20px;background:none;border:none;color:#5a5550;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:15px;display:flex;align-items:center;gap:6px;transition:background .15s" onmouseover="this.style.background='rgba(232,84,71,.08)';this.style.color='#e85447'" onmouseout="this.style.background='none';this.style.color='#5a5550'">
+          <i class="ti ti-x" style="font-size:18px" aria-hidden="true"></i>Annuler
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateStatus(id, status) {
+  const orders = loadOrders();
+  const o = orders.find(x => x.id === id);
+  if (o) { o.status = status; saveOrders(orders); render(); }
+}
+
+function clock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+const style = document.createElement('style');
+style.textContent = `@keyframes urgpulse{0%,100%{border-color:#e85447}50%{border-color:rgba(232,84,71,.3)}}`;
+document.head.appendChild(style);
+
+let liveDot = true;
+setInterval(()=>{ liveDot=!liveDot; document.getElementById('live-dot').style.opacity=liveDot?'1':'0.3'; }, 700);
+
+render();
+clock();
+setInterval(render, 4000);
+setInterval(clock, 1000);
+</script>
