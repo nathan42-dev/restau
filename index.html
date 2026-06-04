@@ -980,7 +980,7 @@ function renderCuisine() {
   const allOrders = Object.values(orders);
   document.getElementById('stat-new').textContent = allOrders.filter(o=>o.status==='new').length;
   document.getElementById('stat-prep').textContent = allOrders.filter(o=>o.status==='prep').length;
-  document.getElementById('stat-done').textContent = allOrders.filter(o=>o.status==='done').length;
+  document.getElementById('stat-done').textContent = servedToday;
 
   if (!active.length) {
     if (isTv) tvWrap.style.display = 'none';
