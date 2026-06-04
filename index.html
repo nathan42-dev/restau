@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RestoPOS</title>
+<title>NathRest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
@@ -416,7 +416,7 @@ body.tv-mode .cuis-grid{overflow:hidden !important;position:relative}
               <div class="gestion-row-icon" style="background:rgba(232,197,71,.12);color:var(--acc)"><i class="ti ti-speakerphone" aria-hidden="true"></i></div>
               <div>
                 <div class="gestion-row-label">Envoyer un message à la cuisine</div>
-                <div class="gestion-row-sub">Affiché 5 secondes sur l'écran ?cuisine avec un son</div>
+                <div class="gestion-row-sub">Affiché 5 secondes sur l'écran cuisine avec un son</div>
               </div>
             </div>
             <div class="push-input-wrap" style="width:100%;padding:0">
@@ -1465,7 +1465,7 @@ const params = new URLSearchParams(window.location.search);
 const isTVMode = params.has('cuisine') || window.location.hash === '#cuisine' || window.location.search.includes('cuisine');
 if (isTVMode) {
   document.body.classList.add('tv-mode');
-  document.title = 'Cuisine — RestoPOS';
+  document.title = 'Cuisine — NathRest';
   // Also force active view to cuisine
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   const cv = document.getElementById('view-cuisine');
