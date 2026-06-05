@@ -1201,8 +1201,10 @@ function renderRestoStatus() {
 }
 
 function renderServedCount() {
-  const sub = document.getElementById('served-count-sub');
-  if (sub) sub.textContent = servedToday + ' commande' + (servedToday > 1 ? 's' : '') + ' servie' + (servedToday > 1 ? 's' : '') + " aujourd’hui";
+  // Gestion
+  if (sub) sub.textContent = servedToday + ' commande...' ;
+  // Cuisine (?cuisine)
+  if (statDone) statDone.textContent = servedToday;
 }
 
 // ---- CARTE ----
