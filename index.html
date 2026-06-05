@@ -1874,7 +1874,7 @@ const params = new URLSearchParams(window.location.search);
 const isTVMode = params.has('cuisine') || window.location.hash === '#cuisine' || window.location.search.includes('cuisine');
 if (isTVMode) {
   document.body.classList.add('tv-mode');
-  document.title = 'Cuisine — RestoPOS';
+  document.title = 'Cuisine — NathRest';
   // Also force active view to cuisine
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   const cv = document.getElementById('view-cuisine');
