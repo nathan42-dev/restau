@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RestoPOS</title>
+<title>NathRest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
@@ -477,7 +477,7 @@ body.tv-mode .cuis-grid{overflow:hidden !important;position:relative}
               </div>
             </div>
             <div class="push-input-wrap" style="width:100%;padding:0">
-              <input class="push-input" id="push-msg-input" placeholder="Ex : Service terminé, pause 10 min…" maxlength="80"
+              <input class="push-input" id="push-msg-input" maxlength="80"
                 onkeydown="if(event.key==='Enter')sendPushMessage()">
               <button class="push-send-btn" id="push-send-btn" onclick="sendPushMessage()">
                 <i class="ti ti-send" aria-hidden="true"></i>Envoyer
